@@ -1,8 +1,19 @@
 # Utility for compiling out of tree kernel moduels for pCP Kernels
 
+## Start
+* Step 1: Download the two scripts:
+ * cd ~/.local/bin
+ * wget https://github.com/piCorePlayer/pCP-Kernels/raw/master/pcp_prepare_kernel_src
+ * wget https://github.com/piCorePlayer/pCP-Kernels/raw/master/pcp_make_module_extension
+* Step 2: Prepare the kernel source...this will download the source if needed.  Note: kernel source is over 130MB, you will likely need about 200MB of free space to perform these tasks.
+ * run: pcp_prepare_kernel_src -s <path to saved pCP kernel source - or where to save it>
+* Step 3: Compile your driver based on notes below, driver source code, and information from step 2.
+* Step 4: Build the extension that contains the driver.
+  * Run: pcp_make_module_extension -e <extension name>
+  * Make sure to run this command from the source directory of your driver.
+ 
 
-Recommended repos for Realtek drivers.... but there are many.  There build options for these packages can be
-quite different.
+### Recommended repos for Realtek drivers....but there are many.  There build options for these packages can be quite different.
 
 Notes: In all cases, you will need to edit Makefile
 * Set all the CONFIG_PLATFORM* = n
