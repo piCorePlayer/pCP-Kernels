@@ -9,7 +9,7 @@
  * run: pcp_prepare_kernel_src -s <path to saved pCP kernel source - or where to save it>
 * Step 3: Compile your driver based on notes below, driver source code, and information from step 2.
 * Step 4: Build the extension that contains the driver.
-  * Run: pcp_make_module_extension -e <extension name>
+  * Run: pcp_make_module_extension -e < extension name >
   * Make sure to run this command from the source directory of your driver.
  
 
