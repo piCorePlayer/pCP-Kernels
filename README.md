@@ -31,8 +31,5 @@ Notes: In all cases, you will need to edit Makefile
 8822bu - https://github.com/EntropicEffect/rtl8822bu [branch "master"]
 
 8821cu - https://github.com/brektrou/rtl8821CU [branch "master"]
-* Makefile uses KVER instead of the normal KERNELVERSION variable
-* export KVER=$KERNELRELEASE
-* unset KERNELRELEASE
 * This driver utilizes floating point, which is not normal for kernel drivers. The readme at the git repo describes how to edit the kernel source to allow building for rpi.
 
