@@ -1,0 +1,116 @@
+#!/bin/sh
+
+. /etc/init.d/tc-functions
+checknotroot
+
+usage() {
+	echo ""
+	echo "Usage: $(basename $0) -k <kernel release> -s <path to kernel source>"
+	echo "  -k  Build for kernel xxx. Will default to running kernel version if not set."
+	echo "  -s  This is the location of the kernel source. Will clone pCP kernel repo if needed"
+	echo ""
+	exit 2
+}
+
+while getopts k:p:s: OPTION; do
+	case ${OPTION} in
+		k) K_VER=${OPTARG} ;;
+		s) LINUX_SRC_DIR=${OPTARG} ;;
+		*) usage ;;
+	esac
+done
+
+[ "$LINUX_SRC_DIR" = "" ] && usage
+KERNELVER=${K_VER:-$(uname -r)}
+
+
+echo "[ INFO ] Preparing kernel for version: $KERNELVER"
+echo "[ INFO ] piCore Repo Version: $PICOREVER"
+echo "[ INFO ] Saving Kernel sources to: $LINUX_SRC_DIR"
+
+echo "[ INFO ] Loading Build dependancies"
+STD_DEPS=""
+BUILD_DEPS="compiletc squashfs-tools perl5 openssl-dev git bash"
+TCZ_DEPS=""
+DEV_TCZ_DEPS=""
+FULL_DEPS="$STD_DEPS $BUILD_DEPS"
+
+for deps in $FULL_DEPS; do
+	tce-status -i | grep -q ${deps%.*}
+	if [ $? -ne 0 ]; then
+		if [ ! -f /etc/sysconfig/tcedir/optional/$deps.tcz ]; then
+			Downloading $deps
+			tce-load -w $deps
+		fi
+		tce-load -i $deps >/dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			echo "[ INFO ] Loaded $deps..."
+		else
+			echo "[ ERROR ] Failed to load $deps... exiting"
+			exit 1
+		fi
+	fi
+done
+
+
+GIT_BRANCH="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched"
+
+### Get linux source
+echo "[ INFO ] Checking out linux source from pCP github."
+if [ ! -f $LINUX_SRC_DIR/Makefile ]; then
+	git clone --depth 1 https://github.com/piCorePlayer/linux.git $LINUX_SRC_DIR
+	git checkout $GIT_BRANCH
+else
+	cd $LINUX_SRC_DIR
+	git pull
+	git checkout $GIT_BRANCH
+fi
+
+if [ $? -ne 0 ]; then
+	echo "[ ERROR ] Error getting kernel source"
+	exit 1
+fi
+
+KBASE=$(echo $KERNELVER | awk -F'.' '{ print $1 "." $2 }')
+KREVISION=$(echo $KERNELVER | awk -F'-' '{ print $1 }')
+SYM_REPO="https://github.com/piCorePlayer/pCP-Kernels/raw/master/${KBASE}/${KREVISION}"
+
+### Get Symbols.
+[ ! -f /tmp/config.xz ] && busybox wget ${SYM_REPO}/${KERNELVER}_.config.xz -O /tmp/config.xz
+[ ! -f /tmp/Module.symvers.xz ] && busybox wget ${SYM_REPO}/${KERNELVER}_Module.symvers.xz -O /tmp/Module.symvers.xz
+[ ! -f /tmp/System.map.xz ] && busybox wget ${SYM_REPO}/${KERNELVER}_System.map.xz -O /tmp/System.map.xz
+
+cd $LINUX_SRC_DIR
+echo "[ INFO ] Cleaning linux source tree"
+make -s mrproper
+
+echo "[ INFO ] Copying configs and symbols"
+xz -d -kc /tmp/config.xz > .config
+xz -d -kc /tmp/System.map.xz > System.map
+xz -d -kc /tmp/Module.symvers.xz > Module.symvers
+
+sudo rm /lib/modules/${KERNELVER}/build
+[ ! -d /lib/modules/${KERNELVER} ] && sudo mkdir -p /lib/modules/${KERNELVER}
+sudo ln -sv $LINUX_SRC_DIR /lib/modules/${KERNELVER}/build
+
+echo "[ INFO ] Preparing Kernel"
+make -s -j4 KERNELRELEASE=$KERNELVER scripts
+make -s -j4 KERNELRELEASE=$KERNELVER modules_prepare
+
+touch /tmp/mark
+MARK=$(ls -l /tmp/mark |awk -F' ' '{print $6 " " $7 " " $8}')
+
+export KVER=$KERNELVER
+
+echo "[ INFO ] Setting mark timestamp to $MARK. This allows finding installed files after build"
+echo "           If you perform multiple driver installations, please run \"touch /tmp/mark\" beore"
+echo "           running \"make\" for your driver."
+echo ""
+echo "[ INFO ] Now download source for your driver, read the notes edit the Makefile, and then build the"
+echo "           driver by running \"make\" KVER=$KERNELVER -j<number of jobs>"
+echo ""
+echo "[ INFO ] If the driver is successfully built, then from the driver source directory, run"
+echo "           pcp_make_module_extension -k $KERNELVER -e <name of extension>"
+echo ""
+echo "           i.e. pcp_make_module_extension -k $KERNELVER -e rtl8812au"
+echo ""

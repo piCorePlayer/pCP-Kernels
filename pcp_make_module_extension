@@ -1,0 +1,102 @@
+#!/bin/sh
+
+. /etc/init.d/tc-functions
+checknotroot
+
+usage() {
+	echo ""
+	echo "Usage: $(basename $0) -k <kernel release> -e <extension basename>"
+	echo "  -k  Build for kernel xxx. Will default to running kernel version if not set."
+	echo "  -e  Extension name (i.e. mywifi)"
+	echo ""
+	exit 2
+}
+
+while getopts k:e: OPTION; do
+	case ${OPTION} in
+		k) K_VER=${OPTARG} ;;
+		e) EXT=${OPTARG%.*} ;;
+		*) usage ;;
+	esac
+done
+
+[ "$EXT" = "" ] && usage
+KERNELVER=${K_VER:-$(uname -r)}
+EXTNAM=$EXT-$KERNELVER
+ONBOOTNAM="$EXT-KERNEL.tcz"
+TMPDIR=/tmp/$EXTNAM
+sudo rm -rf $TMPDIR
+
+if [ ! -f /lib/modules/$KERNELVER/build/Module.symvers ]; then
+	echo "[ ERROR ] You must first prepare the kernel with \"pcp_prepare_kernel_src\""
+	exit 1
+fi
+
+if [ ! -f ./Makefile ]; then
+	echo "[ ERROR ] This script must be started from your module source directory"
+fi
+
+echo "[ INFO ] Building kernel modules extension: $EXTNAM"
+echo "[ INFO ] Building module for kernel version: $KERNELVER"
+
+echo "[ INFO ] Loading Build dependancies"
+STD_DEPS=""
+BUILD_DEPS="compiletc squashfs-tools perl5 openssl-dev git bash"
+TCZ_DEPS=""
+DEV_TCZ_DEPS=""
+FULL_DEPS="$STD_DEPS $BUILD_DEPS"
+
+for deps in $FULL_DEPS; do
+	tce-status -i | grep -q ${deps%.*}
+	if [ $? -ne 0 ]; then
+		if [ ! -f /etc/sysconfig/tcedir/optional/$deps.tcz ]; then
+			Downloading $deps
+			tce-load -w $deps
+		fi
+		tce-load -i $deps >/dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			echo "[ INFO ] Loaded $deps..."
+		else
+			echo "[ ERROR ] Failed to load $deps... exiting"
+			exit 1
+		fi
+	fi
+done
+
+###### Fixes for know crappy installation programs
+#rtl8188eu
+
+#rtl8812CU
+#unset KERNELRELEASE.....the Makefile uses KVER
+
+if [ ! -f /tmp/mark ]; then
+	echo "[ ERROR ] Something went wrong during prepare, please prepare the kernel source again"
+	exit 1
+fi
+
+MARK=$(ls -l /tmp/mark |awk -F' ' '{print $6 " " $7 " " $8}')
+
+echo "[ INFO ] Timestamp for driver detection: $MARK"
+
+mkdir -p $TMPDIR
+
+sudo mkdir -p /lib/modules/$KERNELVER/kernel/drivers/net/wireless
+
+echo "[ INFO ] Installing driver from `pwd`"
+
+sudo -E make install
+
+find /lib -newer /tmp/mark -not -type d | grep -v /lib/modules/$KERNELVER/modules >/tmp/tar.lst
+tar cvf /tmp/mod.tar -T /tmp/tar.lst
+tar xf /tmp/mod.tar -C $TMPDIR
+cd $TMPDIR
+cd ..
+mksquashfs $EXTNAM $EXTNAM.tcz -noappend > /dev/null 2>&1
+md5sum $EXTNAM.tcz >  $EXTNAM.tcz.md5.txt
+
+echo "[ INFO ] The contents of extension are:"
+unsquashfs -ll $EXTNAM.tcz
+
+echo "[ INFO ] The extension can be found at /tmp/$EXTNAM.tcz"
+echo "[ INFO ] move $EXTNAM.tcz and $EXTNAM.tcz.md5.txt to $(readlink /etc/sysconfig/tcedir)/optional"
+echo "[ INFO ] Then edit $(readlink /etc/sysconfig/tcedir)/onboot.lst and add $ONBOOTNAM to the list."
