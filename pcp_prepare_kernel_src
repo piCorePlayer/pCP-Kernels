@@ -12,6 +12,10 @@ usage() {
 	exit 2
 }
 
+trimval() {
+	echo $1 | cut -d '=' -f2 | xargs
+}
+
 while getopts k:p:s: OPTION; do
 	case ${OPTION} in
 		k) K_VER=${OPTARG} ;;
@@ -39,7 +43,7 @@ for deps in $FULL_DEPS; do
 	tce-status -i | grep -q ${deps%.*}
 	if [ $? -ne 0 ]; then
 		if [ ! -f /etc/sysconfig/tcedir/optional/$deps.tcz ]; then
-			Downloading $deps
+			echo "Downloading $deps"
 			tce-load -w $deps
 		fi
 		tce-load -i $deps >/dev/null 2>&1
@@ -52,24 +56,43 @@ for deps in $FULL_DEPS; do
 	fi
 done
 
-
-GIT_BRANCH="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched"
-
 ### Get linux source
-echo "[ INFO ] Checking out linux source from pCP github."
-if [ ! -f $LINUX_SRC_DIR/Makefile ]; then
-	git clone --depth 1 https://github.com/piCorePlayer/linux.git $LINUX_SRC_DIR
-	git checkout $GIT_BRANCH
-else
-	cd $LINUX_SRC_DIR
-	git pull
-	git checkout $GIT_BRANCH
+if [ -f $LINUX_SRC_DIR/Makefile ]; then
+	#Check to see if the source is the right version
+	while read LINE; do
+		case $LINE in
+			VERSION*) VERSION=$(trimval "${LINE}");;
+			PATCHLEVEL*) PATCHLEVEL=$(trimval "${LINE}");;
+			SUBLEVEL*) SUBLEVEL=$(trimval "${LINE}");;
+			NAME*) break;;
+			*);;
+		esac
+	done < $LINUX_SRC_DIR/Makefile
+
+	CURRENTKERNELSRC="$VERSION.$PATCHLEVEL.$SUBLEVEL"
+	if [ $(echo $KERNELVER | cut -d'-' -f1) = "$CURRENTKERNELSRC" ]; then
+		echo "[ INFO ] Kernel source directory is the correct version"
+	else
+		echo "[ ERROR] Source directory is not the correct version, please select a new directory"
+		exit 1
+	fi
 fi
 
+echo "[ INFO ] Downloading linux source from pCP github."
+KSRC="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched.zip"
+[ -d $LINUX_SRC_DIR ] || mkdir -p $LINUX_SRC_DIR
+wget -c https://github.com/piCorePlayer/linux/archive/refs/heads/$KSRC -P /tmp
 if [ $? -ne 0 ]; then
 	echo "[ ERROR ] Error getting kernel source"
 	exit 1
 fi
+echo "[ INFO ] Extracting kernel source to $LINUX_SRC_DIR
+unzip -q -d "$LINUX_SRC_DIR" "/tmp/$KSRC"
+cd $LINUX_SRC_DIR/linux*
+ls -A1 | xargs -r -I {} mv {} ..
+cd ..
+rmdir linux-*
+rm /tmp/$KSRC
 
 KBASE=$(echo $KERNELVER | awk -F'.' '{ print $1 "." $2 }')
 KREVISION=$(echo $KERNELVER | awk -F'-' '{ print $1 }')
