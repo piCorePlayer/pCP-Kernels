@@ -89,10 +89,15 @@ fi
 echo "[ INFO ] Extracting kernel source to $LINUX_SRC_DIR"
 unzip -q -d "$LINUX_SRC_DIR" "/tmp/$KSRC"
 cd $LINUX_SRC_DIR/linux*
-ls -A1 | xargs -r -I {} mv {} ..
-cd ..
-rmdir linux-*
-rm /tmp/$KSRC
+if [ -f Makefile ]; then
+	ls -A1 | xargs -r -I {} mv {} ..
+	cd ..
+	rmdir linux-*
+	rm /tmp/$KSRC
+else
+	echo "Linux source not found"
+	exit 1
+fi
 
 KBASE=$(echo $KERNELVER | awk -F'.' '{ print $1 "." $2 }')
 KREVISION=$(echo $KERNELVER | awk -F'-' '{ print $1 }')
