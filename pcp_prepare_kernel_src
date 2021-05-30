@@ -86,7 +86,7 @@ if [ $? -ne 0 ]; then
 	echo "[ ERROR ] Error getting kernel source"
 	exit 1
 fi
-echo "[ INFO ] Extracting kernel source to $LINUX_SRC_DIR
+echo "[ INFO ] Extracting kernel source to $LINUX_SRC_DIR"
 unzip -q -d "$LINUX_SRC_DIR" "/tmp/$KSRC"
 cd $LINUX_SRC_DIR/linux*
 ls -A1 | xargs -r -I {} mv {} ..
