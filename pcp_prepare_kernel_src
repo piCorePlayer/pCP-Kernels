@@ -112,15 +112,15 @@ SYM_REPO="https://github.com/piCorePlayer/pCP-Kernels/raw/master/${KBASE}/${KREV
 echo "[ INFO ] Downloading symbols from ${SYM_REPO}/${KERNELVER}"
 if [ ! -f /tmp/config.xz ]; then
 	busybox wget ${SYM_REPO}/${KERNELVER}_.config.xz -O /tmp/config.xz
-	[ $? -ne 0 ] && echo "[ERROR] config archive not found."; exit 1
+	[ $? -ne 0 ] && (echo "[ERROR] config archive not found."; exit 1)
 fi
 if [ ! -f /tmp/Module.symvers.xz ]; then
 	busybox wget ${SYM_REPO}/${KERNELVER}_Module.symvers.xz -O /tmp/Module.symvers.xz
-	[ $? -ne 0 ] && echo "[ERROR] symvers archive not found."; exit 1
+	[ $? -ne 0 ] && (echo "[ERROR] symvers archive not found."; exit 1)
 fi
 if [ ! -f /tmp/System.map.xz ]; then
 	busybox wget ${SYM_REPO}/${KERNELVER}_System.map.xz -O /tmp/System.map.xz
-	[ $? -ne 0 ] && echo "[ERROR] System.map archive not found."; exit 1
+	[ $? -ne 0 ] && (echo "[ERROR] System.map archive not found."; exit 1)
 fi
 
 cd $LINUX_SRC_DIR

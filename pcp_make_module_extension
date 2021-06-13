@@ -14,14 +14,14 @@ usage() {
 
 while getopts k:e: OPTION; do
 	case ${OPTION} in
-		k) K_VER=${OPTARG} ;;
+		k) KVER=${OPTARG} ;;
 		e) EXT=${OPTARG%.*} ;;
 		*) usage ;;
 	esac
 done
 
 [ "$EXT" = "" ] && usage
-KERNELVER=${K_VER:-$(uname -r)}
+KERNELVER=${KVER:-$(uname -r)}
 EXTNAM=$EXT-$KERNELVER
 ONBOOTNAM="$EXT-KERNEL.tcz"
 TMPDIR=/tmp/$EXTNAM
@@ -62,12 +62,6 @@ for deps in $FULL_DEPS; do
 		fi
 	fi
 done
-
-###### Fixes for know crappy installation programs
-#rtl8188eu
-
-#rtl8812CU
-#unset KERNELRELEASE.....the Makefile uses KVER
 
 if [ ! -f /tmp/mark ]; then
 	echo "[ ERROR ] Something went wrong during prepare, please prepare the kernel source again"
