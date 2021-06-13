@@ -7,6 +7,7 @@ usage() {
 	echo ""
 	echo "Usage: $(basename $0) -k <kernel release> -s <path to kernel source>"
 	echo "  -k  Build for kernel xxx. Will default to running kernel version if not set."
+	echo "      current kernel name is $(uname -r)"
 	echo "  -s  This is the location of the kernel source. Will clone pCP kernel repo if needed"
 	echo ""
 	exit 2
@@ -19,7 +20,7 @@ trimval() {
 while getopts k:p:s: OPTION; do
 	case ${OPTION} in
 		k) K_VER=${OPTARG} ;;
-		s) LINUX_SRC_DIR=${OPTARG} ;;
+		s) LINUX_SRC_DIR=$(readlink -f ${OPTARG}) ;;
 		*) usage ;;
 	esac
 done
@@ -72,31 +73,35 @@ if [ -f $LINUX_SRC_DIR/Makefile ]; then
 	CURRENTKERNELSRC="$VERSION.$PATCHLEVEL.$SUBLEVEL"
 	if [ $(echo $KERNELVER | cut -d'-' -f1) = "$CURRENTKERNELSRC" ]; then
 		echo "[ INFO ] Kernel source directory is the correct version"
+		KSRC="OK"
 	else
 		echo "[ ERROR] Source directory is not the correct version, please select a new directory"
 		exit 1
 	fi
 fi
 
-KSRC="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched.zip"
-[ -d $LINUX_SRC_DIR ] || mkdir -p $LINUX_SRC_DIR
-echo "[ INFO ] Downloading linux source from pCP github($KSRC)."
-wget -c https://github.com/piCorePlayer/linux/archive/refs/heads/$KSRC -P /tmp
-if [ $? -ne 0 ]; then
-	echo "[ ERROR ] Error getting kernel source"
-	exit 1
-fi
-echo "[ INFO ] Extracting kernel source to $LINUX_SRC_DIR"
-unzip -q -d "$LINUX_SRC_DIR" "/tmp/$KSRC"
-cd $LINUX_SRC_DIR/linux*
-if [ -f Makefile ]; then
-	ls -A1 | xargs -r -I {} mv {} ..
-	cd ..
-	rmdir linux-*
-	rm /tmp/$KSRC
-else
-	echo "Linux source not found"
-	exit 1
+if [ "$KSRC" != "OK" ]; then 
+	KSRC="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched.zip"
+	[ -d $LINUX_SRC_DIR ] || mkdir -p $LINUX_SRC_DIR
+	echo "[ INFO ] Downloading linux source from pCP github($KSRC)."
+	wget -c https://github.com/piCorePlayer/linux/archive/refs/heads/$KSRC -P /tmp
+	if [ $? -ne 0 ]; then
+		echo "[ ERROR ] Error getting kernel source"
+		exit 1
+	fi
+	echo "[ INFO ] Extracting kernel source to $LINUX_SRC_DIR"
+	unzip -q -d "$LINUX_SRC_DIR" "/tmp/$KSRC"
+
+	cd $LINUX_SRC_DIR/linux*
+	if [ -f Makefile ]; then
+		ls -A1 | xargs -r -I {} mv {} ..
+		cd ..
+		rmdir linux-*
+		rm /tmp/$KSRC
+	else
+		echo "Linux source not found"
+		exit 1
+	fi
 fi
 
 KBASE=$(echo $KERNELVER | awk -F'.' '{ print $1 "." $2 }')
@@ -104,9 +109,19 @@ KREVISION=$(echo $KERNELVER | awk -F'-' '{ print $1 }')
 SYM_REPO="https://github.com/piCorePlayer/pCP-Kernels/raw/master/${KBASE}/${KREVISION}"
 
 ### Get Symbols.
-[ ! -f /tmp/config.xz ] && busybox wget ${SYM_REPO}/${KERNELVER}_.config.xz -O /tmp/config.xz
-[ ! -f /tmp/Module.symvers.xz ] && busybox wget ${SYM_REPO}/${KERNELVER}_Module.symvers.xz -O /tmp/Module.symvers.xz
-[ ! -f /tmp/System.map.xz ] && busybox wget ${SYM_REPO}/${KERNELVER}_System.map.xz -O /tmp/System.map.xz
+echo "[ INFO ] Downloading symbols from ${SYM_REPO}/${KERNELVER}"
+if [ ! -f /tmp/config.xz ]; then
+	busybox wget ${SYM_REPO}/${KERNELVER}_.config.xz -O /tmp/config.xz
+	[ $? -ne 0 ] && echo "[ERROR] config archive not found."; exit 1
+fi
+if [ ! -f /tmp/Module.symvers.xz ]; then
+	busybox wget ${SYM_REPO}/${KERNELVER}_Module.symvers.xz -O /tmp/Module.symvers.xz
+	[ $? -ne 0 ] && echo "[ERROR] symvers archive not found."; exit 1
+fi
+if [ ! -f /tmp/System.map.xz ]; then
+	busybox wget ${SYM_REPO}/${KERNELVER}_System.map.xz -O /tmp/System.map.xz
+	[ $? -ne 0 ] && echo "[ERROR] System.map archive not found."; exit 1
+fi
 
 cd $LINUX_SRC_DIR
 echo "[ INFO ] Cleaning linux source tree"
