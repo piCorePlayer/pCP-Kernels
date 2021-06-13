@@ -78,9 +78,9 @@ if [ -f $LINUX_SRC_DIR/Makefile ]; then
 	fi
 fi
 
-echo "[ INFO ] Downloading linux source from pCP github."
 KSRC="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched.zip"
 [ -d $LINUX_SRC_DIR ] || mkdir -p $LINUX_SRC_DIR
+echo "[ INFO ] Downloading linux source from pCP github($KSRC)."
 wget -c https://github.com/piCorePlayer/linux/archive/refs/heads/$KSRC -P /tmp
 if [ $? -ne 0 ]; then
 	echo "[ ERROR ] Error getting kernel source"
