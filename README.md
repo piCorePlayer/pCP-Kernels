@@ -2,15 +2,17 @@
 
 ## Start
 * Step 1: Download the two scripts:
- * cd ~/.local/bin
- * wget https://github.com/piCorePlayer/pCP-Kernels/raw/master/pcp_prepare_kernel_src
- * wget https://github.com/piCorePlayer/pCP-Kernels/raw/master/pcp_make_module_extension
- * chmod 755 pcp*
-* Step 2: Prepare the kernel source...this will download the source if needed.  Note: kernel source is over 160MB, you will likely need about 300MB of free space to perform these tasks.
- * run: pcp_prepare_kernel_src -s <path to saved pCP kernel source - or where to save it>
-* Step 3: Compile your driver based on notes below, driver source code, and information from step 2.
-* Step 4: Build the extension that contains the driver.
-  * Run: pcp_make_module_extension -e < extension name >
+  * cd ~/.local/bin
+  * wget https://github.com/piCorePlayer/pCP-Kernels/raw/master/pcp_prepare_kernel_src
+  * wget https://github.com/piCorePlayer/pCP-Kernels/raw/master/pcp_make_module_extension
+  * chmod 755 pcp*
+* Step 2: Prepare the kernel source...this will download the source if needed.  Note: kernel source is over 220MB, you will likely need about 500MB of free space to perform these tasks.
+  * run: pcp_prepare_kernel_src -k <kernel version to build> -s <path to saved pCP kernel source - or where to save it>
+* Step 3: Download the driver source, and edit Makefile, See Below.
+* Step 4: Compile your driver based on notes below, driver source code, and information from step 2.
+  * run make KVER=x.x.x-pcpCore-xx -j <number of parallel jobs>
+* Step 5: Build the extension that contains the driver.
+  * Run: pcp_make_module_extension -k <kernel version to build> -e < extension name >
   * Make sure to run this command from the source directory of your driver.
  
 
@@ -33,4 +35,11 @@ Notes: In all cases, you will need to edit Makefile
 
 8821cu - https://github.com/brektrou/rtl8821CU [branch "master"]
 * This driver utilizes floating point, which is not normal for kernel drivers. The readme at the git repo describes how to edit the kernel source to allow building for rpi.
+
+### pCP Kernel Versions
+* pCP 8.0.0
+  * Single Core boards (i.e. rpiZero): 5.10.42-pcpCore
+  * RPi2B,3,3B,CM3: 5.10.42-pcpCore-v7
+  * RPi4 32bit: 5.10.42-pcpCore-v7l
+  * RPI4 64bit: 5.10.42-pcpCore-v8
 

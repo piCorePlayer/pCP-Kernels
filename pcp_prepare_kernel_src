@@ -17,17 +17,27 @@ trimval() {
 	echo $1 | cut -d '=' -f2 | xargs
 }
 
-while getopts k:p:s: OPTION; do
+while getopts k:s: OPTION; do
 	case ${OPTION} in
 		k) K_VER=${OPTARG} ;;
-		s) LINUX_SRC_DIR=$(readlink -f ${OPTARG}) ;;
+		s) DIR=$(readlink -f ${OPTARG})
+			if [ "$DIR" = "" ]; then
+				LINUX_SRC_DIR=${OPTARG}
+			else
+				LINUX_SRC_DIR=$(readlink -f ${OPTARG})
+			fi
+		;;
 		*) usage ;;
 	esac
 done
-
 [ "$LINUX_SRC_DIR" = "" ] && usage
 KERNELVER=${K_VER:-$(uname -r)}
 
+if [ ! -d $LINUX_SRC_DIR ]; then
+	mkdir -p $LINUX_SRC_DIR
+	DIR=$(readlink -f $LINUX_SRC_DIR)
+	LINUX_SRC_DIR=${DIR}
+fi
 
 echo "[ INFO ] Preparing kernel for version: $KERNELVER"
 echo "[ INFO ] piCore Repo Version: $PICOREVER"
@@ -82,7 +92,6 @@ fi
 
 if [ "$KSRC" != "OK" ]; then 
 	KSRC="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched.zip"
-	[ -d $LINUX_SRC_DIR ] || mkdir -p $LINUX_SRC_DIR
 	echo "[ INFO ] Downloading linux source from pCP github($KSRC)."
 	wget -c https://github.com/piCorePlayer/linux/archive/refs/heads/$KSRC -P /tmp
 	if [ $? -ne 0 ]; then
