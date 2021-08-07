@@ -9,7 +9,7 @@
 * Step 2: Prepare the kernel source...this will download the source if needed.  Note: kernel source is over 220MB, you will likely need about 500MB of free space to perform these tasks.
   * The kernel should be stored on persisitent storage. i.e. USB drive, or if you have expanded your microSD card /mnt/mmcblk0p2/tce/kernelsrc
   * run: pcp_prepare_kernel_src -k <kernel version to build> -s <path to saved pCP kernel source - or where to save it>
-    * <kernel version to build> will be in the format.
+    * \<kernel version to build\> will be in the format.
       * 5.10.42-pcpCore     (If you have a piZero, Pi1)
       * 5.10.42-pcpCore-v7  (If you have a Pi2,3,3B+,CM3)
       * 5.10.42-pcpCore-v7l (If you have a Pi4, using a 32bit OS)
