@@ -35,9 +35,19 @@ KERNELVER=${K_VER:-$(uname -r)}
 
 if [ ! -d $LINUX_SRC_DIR ]; then
 	mkdir -p $LINUX_SRC_DIR
+	if [ $? -ne 0 ]; then
+		echo "Error creating src dir"
+		exit 1
+	fi
 	DIR=$(readlink -f $LINUX_SRC_DIR)
 	LINUX_SRC_DIR=${DIR}
 fi
+
+if [ ! -w $LINUX_SRC_DIR ]; then
+	echo "Kernel source dir is not writtable.  Check permissions"
+	exit 1
+fi
+
 
 echo "[ INFO ] Preparing kernel for version: $KERNELVER"
 echo "[ INFO ] piCore Repo Version: $PICOREVER"
@@ -158,7 +168,8 @@ echo "[ INFO ] Setting mark timestamp to $MARK. This allows finding installed fi
 echo "           If you perform multiple driver installations, please run \"touch /tmp/mark\" beore"
 echo "           running \"make\" for your driver."
 echo ""
-echo "[ INFO ] Now download source for your driver, read the notes edit the Makefile, and then build the"
+echo "[ INFO ] Now download source for your driver, cd to the root directory of the driver"
+echo "           read the the pCP-KERNEL readme.md, edit the Makefile, and then build the"
 echo "           driver by running \"make\" KVER=$KERNELVER -j<number of jobs>"
 echo ""
 echo "[ INFO ] If the driver is successfully built, then from the driver source directory, run"
