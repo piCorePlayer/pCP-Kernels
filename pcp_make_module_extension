@@ -78,7 +78,7 @@ sudo mkdir -p /lib/modules/$KERNELVER/kernel/drivers/net/wireless
 
 echo "[ INFO ] Installing driver from `pwd`"
 
-sudo -E make install
+sudo -E make KVER=$KERNELVER install
 
 find /lib -newer /tmp/mark -not -type d | grep -v /lib/modules/$KERNELVER/modules >/tmp/tar.lst
 tar cvf /tmp/mod.tar -T /tmp/tar.lst
@@ -88,9 +88,10 @@ cd ..
 mksquashfs $EXTNAM $EXTNAM.tcz -noappend > /dev/null 2>&1
 md5sum $EXTNAM.tcz >  $EXTNAM.tcz.md5.txt
 
+echo "[ INFO ] If you see depmod warnings above, they can be ignored"
 echo "[ INFO ] The contents of extension are:"
-unsquashfs -ll $EXTNAM.tcz
 
+unsquashfs -ll $EXTNAM.tcz
 echo "[ INFO ] The extension can be found at /tmp/$EXTNAM.tcz"
 echo "[ INFO ] move $EXTNAM.tcz and $EXTNAM.tcz.md5.txt to $(readlink /etc/sysconfig/tcedir)/optional"
 echo "[ INFO ] Then edit $(readlink /etc/sysconfig/tcedir)/onboot.lst and add $ONBOOTNAM to the list."
