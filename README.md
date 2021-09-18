@@ -8,17 +8,18 @@
   * chmod 755 pcp*
 * Step 2: Prepare the kernel source...this will download the source if needed.  Note: kernel source is over 220MB, you will likely need about 500MB of free space to perform these tasks.
   * The kernel should be stored on persisitent storage. i.e. USB drive, or if you have expanded your microSD card /mnt/mmcblk0p2/tce/kernelsrc
-  * run: pcp_prepare_kernel_src -k <kernel version to build> -s <path to saved pCP kernel source - or where to save it>
+  * run: pcp_prepare_kernel_src -k \<kernel version to build\> -s \<path to saved pCP kernel source - or where to save it\>
     * \<kernel version to build\> will be in the format.
       * 5.10.42-pcpCore     (If you have a piZero, Pi1)
       * 5.10.42-pcpCore-v7  (If you have a Pi2,3,3B+,CM3)
       * 5.10.42-pcpCore-v7l (If you have a Pi4, using a 32bit OS)
       * 5.10.42-pcpCore-v8  (If you have a Pi4, using a 64bit OS)
-* Step 3: Download the driver source, and edit Makefile, See Below.
+* Step 3: Download the driver source, cd to the directory of the driver source and edit Makefile, See Below.
   * Store the driver source on the same persistent disk that you saved the kernel, but not the same folder.  i.e. /mnt/mmcblk0p2/tce/realtek-driversrc
 * Step 4: Compile your driver based on notes below, driver source code, and information from step 2.
   * run make KVER=x.x.x-pcpCore-xx -j <number of parallel jobs>
 * Step 5: Build the extension that contains the driver.
+  * cd <path to saved USB wireless device driver directory>
   * Run: pcp_make_module_extension -k <kernel version to build> -e < extension name >
   * Make sure to run this command from the source directory of your driver.
  
