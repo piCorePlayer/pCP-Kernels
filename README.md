@@ -9,11 +9,11 @@
 * Step 2: Prepare the kernel source...this will download the source if needed.  Note: kernel source is over 220MB, you will likely need about 500MB of free space to perform these tasks.
   * The kernel should be stored on persisitent storage. i.e. USB drive, or if you have expanded your microSD card /mnt/mmcblk0p2/tce/kernelsrc
   * run: pcp_prepare_kernel_src -k \<kernel version to build\> -s \<path to saved pCP kernel source - or where to save it\>
-    * \<kernel version to build\> will be in the format.
-      * 5.10.42-pcpCore     (If you have a piZero, Pi1)
-      * 5.10.42-pcpCore-v7  (If you have a Pi2,3,3B+,CM3)
-      * 5.10.42-pcpCore-v7l (If you have a Pi4, using a 32bit OS)
-      * 5.10.42-pcpCore-v8  (If you have a Pi4, using a 64bit OS)
+    * \<kernel version to build\> will be in the format. See below for kernel versions for pCP releases.
+      * 5.10.xx-pcpCore     (If you have a piZero, Pi1)
+      * 5.10.xx-pcpCore-v7  (If you have a Pi02,2,3,3B+,CM3)
+      * 5.10.xx-pcpCore-v7l (If you have a Pi4, using a 32bit OS)
+      * 5.10.xx-pcpCore-v8  (If you have a Pi4, using a 64bit OS)
 * Step 3: Download the driver source, cd to the directory of the driver source and edit Makefile, See Below.
   * Store the driver source on the same persistent disk that you saved the kernel, but not the same folder.  i.e. /mnt/mmcblk0p2/tce/realtek-driversrc
 * Step 4: Compile your driver based on notes below, driver source code, and information from step 2.
@@ -50,4 +50,8 @@ Notes: In all cases, you will need to edit Makefile
   * RPi2B,3,3B,CM3: 5.10.42-pcpCore-v7
   * RPi4 32bit: 5.10.42-pcpCore-v7l
   * RPI4 64bit: 5.10.42-pcpCore-v8
-
+* pCP 8.1.0
+  * Single Core boards (i.e. rpiZero): 5.10.77-pcpCore
+  * RPi02,2B,3,3B,3B+,CM3: 5.10.77-pcpCore-v7
+  * RPi4 32bit: 5.10.77-pcpCore-v7l
+  * RPI02,3B,4 64bit: 5.10.77-pcpCore-v8
