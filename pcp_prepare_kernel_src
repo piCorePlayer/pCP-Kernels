@@ -101,7 +101,7 @@ if [ -f $LINUX_SRC_DIR/Makefile ]; then
 fi
 
 if [ "$KSRC" != "OK" ]; then 
-	KSRC="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched.zip"
+	KSRC="rpi-$(echo $KERNELVER | cut -d'-' -f1)-pcpPatched.tar.gz"
 	echo "[ INFO ] Downloading linux source from pCP github($KSRC)."
 	wget -c https://github.com/piCorePlayer/linux/archive/refs/heads/$KSRC -P /tmp
 	if [ $? -ne 0 ]; then
@@ -109,13 +109,14 @@ if [ "$KSRC" != "OK" ]; then
 		exit 1
 	fi
 	echo "[ INFO ] Extracting kernel source to $LINUX_SRC_DIR"
-	unzip -q -d "$LINUX_SRC_DIR" "/tmp/$KSRC"
+	tar xf "/tmp/$KSRC" --strip-components 1 -C "$LINUX_SRC_DIR"
+	if [ $? -ne 0 ]; then
+		echo "[ ERROR ] Error extracting source, check to make sure disk is not full, and try again"
+		exit 1
+	fi
 
-	cd $LINUX_SRC_DIR/linux*
-	if [ -f Makefile ]; then
-		ls -A1 | xargs -r -I {} mv {} ..
-		cd ..
-		rmdir linux-*
+	cd $LINUX_SRC_DIR
+	if [ -f virt/Makefile ]; then
 		rm /tmp/$KSRC
 	else
 		echo "Linux source not found"
