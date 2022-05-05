@@ -157,6 +157,7 @@ sudo rm /lib/modules/${KERNELVER}/build
 sudo ln -sv $LINUX_SRC_DIR /lib/modules/${KERNELVER}/build
 
 echo "[ INFO ] Preparing Kernel"
+make -s -j4 KERNELRELEASE=$KERNELVER olddefconfig
 make -s -j4 KERNELRELEASE=$KERNELVER scripts
 make -s -j4 KERNELRELEASE=$KERNELVER modules_prepare
 
