@@ -55,7 +55,7 @@ echo "[ INFO ] Saving Kernel sources to: $LINUX_SRC_DIR"
 
 echo "[ INFO ] Loading Build dependancies"
 STD_DEPS=""
-BUILD_DEPS="compiletc squashfs-tools perl5 openssl-dev git bash"
+BUILD_DEPS="compiletc squashfs-tools perl5 openssl-dev git bash gmp-dev mpc-dev"
 TCZ_DEPS=""
 DEV_TCZ_DEPS=""
 FULL_DEPS="$STD_DEPS $BUILD_DEPS"
