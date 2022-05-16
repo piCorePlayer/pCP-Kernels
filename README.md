@@ -39,7 +39,7 @@ Notes: In all cases, you will need to edit Makefile
 
 8812au - https://github.com/aircrack-ng/rtl8812au [branch "v5.6.4.2"]
 
-8822bu - https://github.com/EntropicEffect/rtl8822bu [branch "master"]
+8822bu - https://github.com/morrownr/88x2bu [branch "5.8.7.4"]
 
 8821cu - https://github.com/brektrou/rtl8821CU [branch "master"]
 * This driver utilizes floating point, which is not normal for kernel drivers. The readme at the git repo describes how to edit the kernel source to allow building for rpi.
