@@ -1,4 +1,4 @@
-# Utility for compiling out of tree kernel moduels for pCP Kernels
+# Utility for compiling out of tree kernel modules for pCP Kernels
 
 ## Start
 * Step 1: Download the two scripts:
