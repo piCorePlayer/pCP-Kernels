@@ -84,6 +84,8 @@ find /lib -newer /tmp/mark -not -type d | grep -v /lib/modules/$KERNELVER/module
 tar cvf /tmp/mod.tar -T /tmp/tar.lst
 tar xf /tmp/mod.tar -C $TMPDIR
 cd $TMPDIR
+mkdir -p usr/local
+mv lib usr/local
 cd ..
 mksquashfs $EXTNAM $EXTNAM.tcz -noappend > /dev/null 2>&1
 md5sum $EXTNAM.tcz >  $EXTNAM.tcz.md5.txt
